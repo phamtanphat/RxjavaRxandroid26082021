@@ -1,31 +1,33 @@
 package com.example.rxjavarxandroid26082021;
 
-import androidx.annotation.RequiresApi;
-import androidx.appcompat.app.AppCompatActivity;
-
 import android.os.Build;
 import android.os.Bundle;
 import android.util.Log;
+import android.widget.TextView;
+import android.widget.Toast;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Iterator;
-import java.util.List;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
-import java.util.function.Consumer;
+import androidx.annotation.RequiresApi;
+import androidx.appcompat.app.AppCompatActivity;
+
+import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers;
+import io.reactivex.rxjava3.annotations.NonNull;
+import io.reactivex.rxjava3.core.Observable;
+import io.reactivex.rxjava3.core.Observer;
+import io.reactivex.rxjava3.core.Scheduler;
+import io.reactivex.rxjava3.disposables.Disposable;
+import io.reactivex.rxjava3.functions.Consumer;
+import io.reactivex.rxjava3.functions.Function;
+import io.reactivex.rxjava3.schedulers.Schedulers;
 
 public class MainActivity extends AppCompatActivity {
 
-    @RequiresApi(api = Build.VERSION_CODES.N)
+    TextView textView;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        textView = findViewById(R.id.textView);
 
 //        List<String> list = new ArrayList<>(Arrays.asList("A","B","C","D","E"));
 //
@@ -41,55 +43,36 @@ public class MainActivity extends AppCompatActivity {
 //        });
 //        Log.d("BBB","Tiếp tục");
 
-        try {
-            int[]result = handleData().get();
-            int[]result2 = handleData1().get();
-            Log.d("BBB",result[0] + "");
-            Log.d("BBB",result2[0] + "");
-        } catch (ExecutionException e) {
-            e.printStackTrace();
-            Log.d("BBB",e.getMessage());
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-            Log.d("BBB",e.getMessage());
-        }
+
+        Observable<String> stringObservable = Observable.just("Teo","Ti","Tun","Tuan","Hoa");
+
+        stringObservable
+                .subscribeOn(Schedulers.io())
+                .map(new Function<String, String>() {
+                    @Override
+                    public String apply(String s) throws Throwable {
+                        Log.d("BBB",Thread.currentThread().getName());
+                        return "Hello " + s;
+                    }
+                })
+//                .subscribeOn(AndroidSchedulers.mainThread())
+//                .map(new Function<String, String>() {
+//                    @Override
+//                    public String apply(String s) throws Throwable {
+//                        Log.d("BBB",Thread.currentThread().getName());
+//                        Toast.makeText(MainActivity.this, s, Toast.LENGTH_SHORT).show();
+//                        return "Hello main " + s;
+//                    }
+//                })
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(new Consumer<String>() {
+                    @Override
+                    public void accept(String s) throws Throwable {
+                        Log.d("BBB",s);
+                    }
+                });
+
+
     }
 
-    @RequiresApi(api = Build.VERSION_CODES.N)
-    private Future<int[]> handleData() {
-        ExecutorService executor = Executors.newFixedThreadPool(1);
-        int[] a = {0};
-        Future<int[]> future = executor.submit(new Runnable() {
-            @Override
-            public void run() {
-                Log.d("BBB",Thread.currentThread().getName());
-                try {
-                    Thread.sleep(10000);
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
-                a[0] = 10;
-            }
-        },a);
-        return future;
-    }
-
-    @RequiresApi(api = Build.VERSION_CODES.N)
-    private Future<int[]> handleData1() {
-        ExecutorService executor = Executors.newFixedThreadPool(1);
-        int[] a = {0};
-        Future<int[]> future = executor.submit(new Runnable() {
-            @Override
-            public void run() {
-                Log.d("BBB",Thread.currentThread().getName());
-                try {
-                    Thread.sleep(10000);
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
-                a[0] = 10;
-            }
-        },a);
-        return future;
-    }
 }
